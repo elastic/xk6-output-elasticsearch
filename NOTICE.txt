@@ -1,0 +1,2 @@
+xk6-output-elasticsearch
+Copyright 2022 Elasticsearch B.V.
