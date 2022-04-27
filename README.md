@@ -1,18 +1,19 @@
 # xk6-output-elasticsearch
 k6 extension for publishing test-run metrics to Elasticsearch.
 
-### Usage
+### Prerequisites
 
-To build k6 binary with the Elasticsearch output extension use:
+Go 1.17 or better (verify with `go version`).
+
+### Getting started
+
 ```
-# Install xk6
-go install go.k6.io/xk6/cmd/xk6@latest
-
-# Build the k6 binary
-xk6 build --with github.com/elastic/xk6-output-elasticsearch@latest 
+git clone git@github.com:elastic/xk6-output-elasticsearch.git
+# build k6 with the Elasticsearch output extension
+make
 ```
 
-You can run new k6 binary against a Cloud cluster with:
+You can run the new k6 binary against a Cloud cluster with:
 ```
 export K6_ELASTICSEARCH_CLOUD_ID=your-cloud-id-here
 export K6_ELASTICSEARCH_USER=elastic
