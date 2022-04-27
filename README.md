@@ -22,7 +22,7 @@ export K6_ELASTICSEARCH_PASSWORD=your-password-here
 ./k6 run script.js -o output-elasticsearch
 ```
 
-Alternatively you can run against a local cluster (without security, self-signed certificates are not supported yet):
+Alternatively you can send metrics to a local cluster (without security, self-signed certificates are not supported yet):
 
 ```
 export K6_ELASTICSEARCH_URL=http://localhost:9200
