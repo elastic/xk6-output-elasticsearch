@@ -1,2 +1,8 @@
 xk6-output-elasticsearch
 Copyright 2022 Elasticsearch B.V.
+
+Elasticsearch B.V. licenses this project to you under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License.
+
+--
+
+This project is based on a modification of https://github.com/grafana/xk6-output-prometheus-remote, which is licensed under the Apache 2.0 License.

@@ -15,6 +15,11 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
+ * This project is based on a modification of
+ * https://github.com/grafana/xk6-output-prometheus-remote which
+ * is licensed under the Apache 2.0 License.
+ *
  */
 
 package esoutput
