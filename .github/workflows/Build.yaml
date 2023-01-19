@@ -30,7 +30,7 @@ jobs:
     - name: push container image to registry
       run: |
         docker push ghcr.io/deepshore/xk6-output-elasticsearch:${{ steps.vars.outputs.sha_short }}-${{ github.run_id }}
-        if echo ${{ github.ref_name }} | grep -c "master"
+        if echo ${{ github.ref_name }} | grep -c "main"
         then
         docker tag ghcr.io/deepshore/xk6-output-elasticsearch:${{ steps.vars.outputs.sha_short }}-${{ github.run_id }} ghcr.io/deepshore/xk6-output-elasticsearch:latest
         docker push ghcr.io/deepshore/xk6-output-elasticsearch:latest
