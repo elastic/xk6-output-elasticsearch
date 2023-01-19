@@ -1,0 +1,33 @@
+name: Build and Dockerize
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: build go module
+      run: make
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - name: Log in to registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ghcr.io/deepshore/xk6-output-elasticsearch:${{ steps.vars.outputs.sha_short }}-${{ github.run_id }}
+    - name: push container image to registry
+      run: |
+        docker push ghcr.io/deepshore/xk6-output-elasticsearch:${{ steps.vars.outputs.sha_short }}-${{ github.run_id }}
+        if echo ${{ github.ref_name }} | grep -c "master"
+        then
+        docker tag ghcr.io/deepshore/xk6-output-elasticsearch:${{ steps.vars.outputs.sha_short }}-${{ github.run_id }} ghcr.io/deepshore/xk6-output-elasticsearch:latest
+        docker push ghcr.io/deepshore/xk6-output-elasticsearch:latest
+        fi
