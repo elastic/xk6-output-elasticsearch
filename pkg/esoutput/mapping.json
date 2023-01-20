@@ -19,10 +19,10 @@
             "enabled": true
         },
         "properties": {
-            "Time": {
+            "Timestamp": {
                 "type": "date"
             },
-            "Value": {
+            "MetricValue": {
                 "type": "double"
             }
         }
