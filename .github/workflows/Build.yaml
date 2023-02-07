@@ -1,4 +1,4 @@
-name: Build and Dockerize
+name: Build
 
 on:
   push:
