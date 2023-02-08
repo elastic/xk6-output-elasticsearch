@@ -43,7 +43,8 @@ type elasticMetricEntry struct {
 	MetricType  string
 	MetricValue float64
 	MetricTags  map[string]string
-	Timestamp   time.Time
+	SampleTags  map[string]string
+	Time        time.Time
 }
 
 type Output struct {
@@ -158,7 +159,8 @@ func (o *Output) flush() {
 					MetricType:  entry.Metric.Type.String(),
 					MetricValue: entry.Value,
 					MetricTags:  entry.GetTags().Map(),
-					Timestamp:   sample.Time,
+					SampleTags:  sample.GetTags().Map(),
+					Time:        sample.Time,
 				}
 				data, err := json.Marshal(mappedEntry)
 				if err != nil {

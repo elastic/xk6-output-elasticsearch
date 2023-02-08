@@ -19,7 +19,7 @@
             "enabled": true
         },
         "properties": {
-            "Timestamp": {
+            "Time": {
                 "type": "date"
             },
             "MetricValue": {
