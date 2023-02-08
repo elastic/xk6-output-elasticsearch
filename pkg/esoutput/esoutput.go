@@ -39,12 +39,12 @@ import (
 )
 
 type elasticMetricEntry struct {
-	MetricName  string
-	MetricType  string
-	MetricValue float64
-	MetricTags  map[string]string
-	SampleTags  map[string]string
-	Time        time.Time
+	MetricName string
+	MetricType string
+	Value      float64
+	MetricTags map[string]string
+	SampleTags map[string]string
+	Time       time.Time
 }
 
 type Output struct {
@@ -155,12 +155,12 @@ func (o *Output) flush() {
 		for _, sample := range samples {
 			for _, entry := range sample.GetSamples() {
 				mappedEntry := elasticMetricEntry{
-					MetricName:  entry.Metric.Name,
-					MetricType:  entry.Metric.Type.String(),
-					MetricValue: entry.Value,
-					MetricTags:  entry.GetTags().Map(),
-					SampleTags:  sample.GetTags().Map(),
-					Time:        sample.Time,
+					MetricName: entry.Metric.Name,
+					MetricType: entry.Metric.Type.String(),
+					Value:      entry.Value,
+					MetricTags: entry.GetTags().Map(),
+					SampleTags: sample.GetTags().Map(),
+					Time:       sample.Time,
 				}
 				data, err := json.Marshal(mappedEntry)
 				if err != nil {

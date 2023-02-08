@@ -22,7 +22,7 @@
             "Time": {
                 "type": "date"
             },
-            "MetricValue": {
+            "Value": {
                 "type": "double"
             }
         }
