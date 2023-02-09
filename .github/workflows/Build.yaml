@@ -1,0 +1,26 @@
+name: Verification Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '^1.17' # The Go version to download (if necessary) and use.
+    - name: build go module
+      run: make && zip --junk-paths k6.zip k6
+    - uses: actions/upload-artifact@v3
+      with:
+        name: k6.zip
+        path: k6.zip

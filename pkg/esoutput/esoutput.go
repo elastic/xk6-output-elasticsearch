@@ -38,6 +38,15 @@ import (
 	"go.k6.io/k6/output"
 )
 
+type elasticMetricEntry struct {
+	MetricName string
+	MetricType string
+	Value      float64
+	MetricTags map[string]string
+	SampleTags map[string]string
+	Time       time.Time
+}
+
 type Output struct {
 	config Config
 
@@ -54,7 +63,7 @@ var _ output.Output = new(Output)
 //go:embed mapping.json
 var mapping []byte
 
-func New(params output.Params) (*Output, error) {
+func New(params output.Params) (output.Output, error) {
 	params.Logger.Info("Elasticsearch: configuring output")
 
 	config, err := GetConsolidatedConfig(params.JSONConfig, params.Environment, params.ConfigArgument)
@@ -130,34 +139,47 @@ func (o *Output) Stop() error {
 	return nil
 }
 
+func (o *Output) blkItemErrHandler(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
+	if err != nil {
+		o.logger.Printf("ERROR: %s", err)
+	} else {
+		o.logger.Printf("ERROR: %s: %s", res.Error.Type, res.Error.Reason)
+	}
+}
+
 func (o *Output) flush() {
 	samplesContainers := o.GetBufferedSamples()
 	for _, samplesContainer := range samplesContainers {
 		samples := samplesContainer.GetSamples()
 
 		for _, sample := range samples {
-			//TODO: Consider to write metrics documents in a different format
-			data, err := json.Marshal(sample)
-			if err != nil {
-				o.logger.Fatalf("Cannot encode document: %s", err)
+			for _, entry := range sample.GetSamples() {
+				mappedEntry := elasticMetricEntry{
+					MetricName: entry.Metric.Name,
+					MetricType: entry.Metric.Type.String(),
+					Value:      entry.Value,
+					MetricTags: entry.GetTags().Map(),
+					SampleTags: sample.GetTags().Map(),
+					Time:       sample.Time,
+				}
+				data, err := json.Marshal(mappedEntry)
+				if err != nil {
+					o.logger.Fatalf("Cannot encode document: %s, %s", err, mappedEntry)
+				}
+				var item = esutil.BulkIndexerItem{
+					Action:    "index",
+					Body:      bytes.NewReader(data),
+					OnFailure: o.blkItemErrHandler,
+				}
+				err = o.bulkIndexer.Add(
+					context.Background(),
+					item,
+				)
+				if err != nil {
+					log.Fatalf("Unexpected error: %s", err)
+				}
 			}
-			err = o.bulkIndexer.Add(
-				context.Background(),
-				esutil.BulkIndexerItem{
-					Action: "index",
-					Body:   bytes.NewReader(data),
-					OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
-						if err != nil {
-							o.logger.Printf("ERROR: %s", err)
-						} else {
-							o.logger.Printf("ERROR: %s: %s", res.Error.Type, res.Error.Reason)
-						}
-					},
-				},
-			)
-			if err != nil {
-				log.Fatalf("Unexpected error: %s", err)
-			}
+
 		}
 	}
 }
