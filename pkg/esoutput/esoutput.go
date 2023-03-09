@@ -125,7 +125,7 @@ func (o *Output) Start() error {
 	} else {
 		o.periodicFlusher = periodicFlusher
 	}
-	o.logger.Debug("Elasticsearch: starting writing")
+	o.logger.Debug("Elasticsearch: starting writing to index k6-metrics")
 
 	return nil
 }

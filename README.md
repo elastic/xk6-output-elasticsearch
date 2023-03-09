@@ -29,3 +29,5 @@ export K6_ELASTICSEARCH_URL=http://localhost:9200
 
 ./k6 run script.js -o output-elasticsearch
 ```
+
+The metrics are stored in the index `k6-metrics` which will be automatically created by this extension. See the [mapping](pkg/esoutput/mapping.json) for details.
