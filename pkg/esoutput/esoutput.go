@@ -31,8 +31,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"strings"
 	"time"
-
+	
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"github.com/sirupsen/logrus"
@@ -80,7 +81,7 @@ func New(params output.Params) (output.Output, error) {
 	if config.CloudID.Valid {
 		esConfig.CloudID = config.CloudID.String
 	} else if config.Url.Valid {
-		esConfig.Addresses = addresses
+		esConfig.Addresses = strings.Split(strings.Join(addresses, ""), ",")
 	}
 	if config.User.Valid {
 		esConfig.Username = config.User.String
