@@ -29,6 +29,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"time"
 
@@ -87,7 +88,14 @@ func New(params output.Params) (output.Output, error) {
 	if config.Password.Valid {
 		esConfig.Password = config.Password.String
 	}
-
+        if config.CACert.Valid {
+		cert, err := ioutil.ReadFile(config.CACert.String)
+		if err != nil {
+			return nil, err
+		}
+	        esConfig.CACert = cert
+        }
+	
 	client, err := es.NewClient(esConfig)
 	if err != nil {
 		return nil, err
