@@ -27,9 +27,11 @@ package esoutput
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	_ "embed"
 	"encoding/json"
 	"log"
+	"net/http"
 	"time"
 
 	es "github.com/elastic/go-elasticsearch/v8"
@@ -86,6 +88,9 @@ func New(params output.Params) (output.Output, error) {
 	}
 	if config.Password.Valid {
 		esConfig.Password = config.Password.String
+	}
+	esConfig.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.InsecureSkipVerify.Bool},
 	}
 
 	client, err := es.NewClient(esConfig)
