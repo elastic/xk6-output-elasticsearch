@@ -62,7 +62,7 @@ The metrics are stored in the index `k6-metrics` which will be automatically cre
 
 ## Docker Compose
 
-This repo includes a [docker-compose.yml](./docker-compose.yml) file based on the [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/8.7/docker.html#docker-file), that starts Elasticsearch and Kibana. It also adds a custom build of k6 having the `xk6-output-elasticsearch` extension. This is just a quick way to showcase the usage, not meant for production usage.
+This repo includes a [docker-compose.yml](./docker-compose.yml) file based on the [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-file), that starts Elasticsearch and Kibana. It also adds a custom build of k6 having the `xk6-output-elasticsearch` extension. This is just a quick way to showcase the usage, not meant for production usage.
 
 Note that some variables (Stack version, elastic and Kibana users' passwords) are defined in the [`.env`](.env) file, where you can change them.
 
@@ -86,9 +86,9 @@ Clone the repo to get started and follow these steps:
 
 5. Visit http://localhost:5601/ to view results in Kibana.
 
-    - Create a [Data View](https://www.elastic.co/guide/en/kibana/8.7/data-views.html) for the index `k6-metrics`.
+    - Create a [Data View](https://www.elastic.co/guide/en/kibana/current/data-views.html) for the index `k6-metrics`.
         ![Kibana Data View](./images/kibana-data-view.png)
-    - Go to [Discover](https://www.elastic.co/guide/en/kibana/8.7/discover.html) to start exploring the metrics.
+    - Go to [Discover](https://www.elastic.co/guide/en/kibana/current/discover.html) to start exploring the metrics.
         ![Kibana Discover](./images/kibana-discover.png)
 
 When done, to clean up run `docker-compose down -v`.
