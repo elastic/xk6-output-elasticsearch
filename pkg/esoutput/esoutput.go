@@ -30,7 +30,9 @@ import (
 	"crypto/tls"
 	_ "embed"
 	"encoding/json"
+	"io/ioutil"
 	"log"
+	"strings"
 	"net/http"
 	"time"
 
@@ -81,7 +83,7 @@ func New(params output.Params) (output.Output, error) {
 	if config.CloudID.Valid {
 		esConfig.CloudID = config.CloudID.String
 	} else if config.Url.Valid {
-		esConfig.Addresses = addresses
+		esConfig.Addresses = strings.Split(strings.Join(addresses, ""), ",")
 	}
 	if config.User.Valid {
 		esConfig.Username = config.User.String
@@ -89,6 +91,14 @@ func New(params output.Params) (output.Output, error) {
 	if config.Password.Valid {
 		esConfig.Password = config.Password.String
 	}
+	if config.CACert.Valid {
+		cert, err := ioutil.ReadFile(config.CACert.String)
+		if err != nil {
+			return nil, err
+		}
+		esConfig.CACert = cert
+	}
+
 	esConfig.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.InsecureSkipVerify.Bool},
 	}
