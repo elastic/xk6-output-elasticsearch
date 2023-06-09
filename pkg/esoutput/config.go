@@ -26,6 +26,7 @@ package esoutput
 
 import (
 	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/kubernetes/helm/pkg/strvals"
@@ -38,9 +39,10 @@ const (
 )
 
 type Config struct {
-	Url     null.String `json:"url" envconfig:"K6_ELASTICSEARCH_URL"`
-	CloudID null.String `json:"cloud-id"  envconfig:"K6_ELASTICSEARCH_CLOUD_ID"`
-	CACert  null.String `json:"caCertFile" envconfig:"K6_ELASTICSEARCH_CA_CERT_FILE"`
+	Url                null.String `json:"url" envconfig:"K6_ELASTICSEARCH_URL"`
+	CloudID            null.String `json:"cloud-id"  envconfig:"K6_ELASTICSEARCH_CLOUD_ID"`
+	CACert             null.String `json:"caCertFile" envconfig:"K6_ELASTICSEARCH_CA_CERT_FILE"`
+	InsecureSkipVerify null.Bool   `json:"insecureSkipVerify" envconfig:"K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY"`
 
 	User     null.String `json:"user" envconfig:"K6_ELASTICSEARCH_USER"`
 	Password null.String `json:"password" envconfig:"K6_ELASTICSEARCH_PASSWORD"`
@@ -50,12 +52,13 @@ type Config struct {
 
 func NewConfig() Config {
 	return Config{
-		Url:         null.StringFrom("http://localhost:9200"),
-		CloudID:     null.NewString("", false),
-		CACert:      null.NewString("", false),
-		User:        null.NewString("", false),
-		Password:    null.NewString("", false),
-		FlushPeriod: types.NullDurationFrom(defaultFlushPeriod),
+		Url:                null.StringFrom("http://localhost:9200"),
+		CloudID:            null.NewString("", false),
+		CACert:             null.NewString("", false),
+		InsecureSkipVerify: null.BoolFrom(false),
+		User:               null.NewString("", false),
+		Password:           null.NewString("", false),
+		FlushPeriod:        types.NullDurationFrom(defaultFlushPeriod),
 	}
 }
 
@@ -71,6 +74,9 @@ func (base Config) Apply(applied Config) Config {
 
 	if applied.CACert.Valid {
 		base.CACert = applied.CACert
+	}
+	if applied.InsecureSkipVerify.Valid {
+		base.InsecureSkipVerify = applied.InsecureSkipVerify
 	}
 
 	if applied.User.Valid {
@@ -108,6 +114,10 @@ func ParseArg(arg string) (Config, error) {
 		c.CACert = null.StringFrom(v)
 	}
 
+	if v, ok := params["insecureSkipVerify"].(bool); ok {
+		c.InsecureSkipVerify = null.BoolFrom(v)
+	}
+
 	if v, ok := params["user"].(string); ok {
 		c.User = null.StringFrom(v)
 	}
@@ -137,6 +147,17 @@ func GetConsolidatedConfig(jsonRawConf json.RawMessage, env map[string]string, a
 		result = result.Apply(jsonConf)
 	}
 
+	getEnvBool := func(env map[string]string, name string) (null.Bool, error) {
+		if v, vDefined := env[name]; vDefined {
+			if b, err := strconv.ParseBool(v); err != nil {
+				return null.NewBool(false, false), err
+			} else {
+				return null.BoolFrom(b), nil
+			}
+		}
+		return null.NewBool(false, false), nil
+	}
+
 	// envconfig is not processing some undefined vars (at least duration) so apply them manually
 	if flushPeriod, flushPeriodDefined := env["K6_ELASTICSEARCH_FLUSH_PERIOD"]; flushPeriodDefined {
 		if err := result.FlushPeriod.UnmarshalText([]byte(flushPeriod)); err != nil {
@@ -154,6 +175,14 @@ func GetConsolidatedConfig(jsonRawConf json.RawMessage, env map[string]string, a
 
 	if ca, caDefined := env["K6_ELASTICSEARCH_CA_CERT_FILE"]; caDefined {
 		result.CACert = null.StringFrom(ca)
+	}
+
+	if skipVerify, err := getEnvBool(env, "K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY"); err != nil {
+		return result, err
+	} else {
+		if skipVerify.Valid {
+			result.InsecureSkipVerify = skipVerify
+		}
 	}
 
 	if user, userDefined := env["K6_ELASTICSEARCH_USER"]; userDefined {

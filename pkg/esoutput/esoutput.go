@@ -27,13 +27,15 @@ package esoutput
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	_ "embed"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"strings"
+	"net/http"
 	"time"
-	
+
 	es "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"github.com/sirupsen/logrus"
@@ -89,14 +91,18 @@ func New(params output.Params) (output.Output, error) {
 	if config.Password.Valid {
 		esConfig.Password = config.Password.String
 	}
-        if config.CACert.Valid {
+	if config.CACert.Valid {
 		cert, err := ioutil.ReadFile(config.CACert.String)
 		if err != nil {
 			return nil, err
 		}
-	        esConfig.CACert = cert
-        }
-	
+		esConfig.CACert = cert
+	}
+
+	esConfig.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.InsecureSkipVerify.Bool},
+	}
+
 	client, err := es.NewClient(esConfig)
 	if err != nil {
 		return nil, err
