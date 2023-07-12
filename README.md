@@ -46,7 +46,7 @@ Alternatively, you can send metrics to a local (unsecured) cluster:
 ```shell
 export K6_ELASTICSEARCH_URL=http://localhost:9200
 
-./k6 run ./samples/script.js -o output-elasticsearch
+./k6 run ./examples/script.js -o output-elasticsearch
 ```
 
 If running locally with TLS (with a self-signed certificate), set `K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY` to `true` (defaults to `false`):
@@ -55,7 +55,7 @@ If running locally with TLS (with a self-signed certificate), set `K6_ELASTICSEA
 export K6_ELASTICSEARCH_URL=https://localhost:9200
 export K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY=true
 
-./k6 run ./samples/script.js -o output-elasticsearch
+./k6 run ./examples/script.js -o output-elasticsearch
 ```
 
 The metrics are stored in the index `k6-metrics` which will be automatically created by this extension. See the [mapping](pkg/esoutput/mapping.json) for details.
@@ -68,7 +68,7 @@ Note that some variables (Stack version, elastic and Kibana users' passwords) ar
 
 Clone the repo to get started and follow these steps: 
 
-1. Put your `k6` scripts in the `samples` directory or use the [`script.js`](./samples/script.js) example.
+1. Put your `k6` scripts in the `examples` directory or use the [`script.js`](examples/script.js) example.
 
 3. Start the `docker-compose` environment.
 
@@ -79,12 +79,12 @@ Clone the repo to get started and follow these steps:
 4. Use the k6 Docker image to run the k6 script and send metrics to the Elasticsearch cluster started in the previous step.
 
     ```shell
-    docker-compose run --rm -T k6 run -<samples/script.js --tag testid=<SOME-ID>
+    docker-compose run --rm -T k6 run -<examples/script.js --tag testid=<SOME-ID>
     ```
 
 	> Note that the [docker-compose command to run k6 tests](https://k6.io/docs/getting-started/running-k6/) might differ depending your OS.
 
-5. Visit http://localhost:5601/ to view results in Kibana.
+5. Visit http://localhost:5601/ to view results in Kibana (default credentials are `elastic` / `changeme`).
 
     - Create a [Data View](https://www.elastic.co/guide/en/kibana/current/data-views.html) for the index `k6-metrics`.
         ![Kibana Data View](./images/kibana-data-view.png)

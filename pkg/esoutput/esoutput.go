@@ -32,8 +32,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"strings"
 	"net/http"
+	"strings"
 	"time"
 
 	es "github.com/elastic/go-elasticsearch/v8"
