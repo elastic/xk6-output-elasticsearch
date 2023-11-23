@@ -30,6 +30,7 @@ import (
 	"crypto/tls"
 	_ "embed"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -107,13 +108,21 @@ func New(params output.Params) (output.Output, error) {
 	if err != nil {
 		return nil, err
 	}
+	// ensure basic connectivity
+	info, err := client.Info()
+	if err != nil {
+		return nil, err
+	}
+	if info.StatusCode != 200 {
+		return nil, fmt.Errorf("cannot connect to Elasticsearch (status code %d)", info.StatusCode)
+	}
 
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Index:  "k6-metrics",
 		Client: client,
 	})
 	if err != nil {
-		params.Logger.Fatalf("Error creating the indexer: %s", err)
+		return nil, fmt.Errorf("error creating the indexer: %v", err)
 	}
 
 	return &Output{
