@@ -28,7 +28,10 @@ This [Dockerfile](./Dockerfile) builds a docker image with the k6 binary.
 
 ## Configuration
 
-### Running on Elastic Cloud
+### Running in Production
+
+> [!NOTE]
+> The examples below use Elastic Cloud, which allows to connect via `K6_ELASTICSEARCH_CLOUD_ID`. Alternatively you can also specify the connection URL with `K6_ELASTICSEARCH_URL`.
 
 You can run the new k6 binary against a Cloud cluster with:
 ```shell
@@ -36,7 +39,23 @@ export K6_ELASTICSEARCH_CLOUD_ID=your-cloud-id-here
 export K6_ELASTICSEARCH_USER=elastic
 export K6_ELASTICSEARCH_PASSWORD=your-password-here
 
-./k6 run script.js -o output-elasticsearch
+./k6 run ./examples/script.js -o output-elasticsearch
+```
+
+or alternatively via an [API key](https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-create-api-key.html) (see also how to [create an API key in Kibana](https://www.elastic.co/guide/en/kibana/current/api-keys.html)):
+```shell
+export K6_ELASTICSEARCH_CLOUD_ID=your-cloud-id-here
+export K6_ELASTICSEARCH_API_KEY=your-base64-encoded-api-key-here
+
+./k6 run ./examples/script.js -o output-elasticsearch
+```
+
+or a [service account token](https://www.elastic.co/guide/en/elasticsearch/reference/current/service-accounts.html#service-accounts-tokens):
+```shell
+export K6_ELASTICSEARCH_CLOUD_ID=your-cloud-id-here
+export K6_ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN=your-service-account-token-here
+
+./k6 run ./examples/script.js -o output-elasticsearch
 ```
 
 ### Running a local cluster

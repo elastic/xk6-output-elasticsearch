@@ -31,9 +31,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -80,7 +80,7 @@ func New(params output.Params) (output.Output, error) {
 
 	var esConfig es.Config
 
-	// Cloud id takes precendence over a URL (which is localhost by default)
+	// Cloud id takes precedence over a URL (which is localhost by default)
 	if config.CloudID.Valid {
 		esConfig.CloudID = config.CloudID.String
 	} else if config.Url.Valid {
@@ -92,8 +92,14 @@ func New(params output.Params) (output.Output, error) {
 	if config.Password.Valid {
 		esConfig.Password = config.Password.String
 	}
+	if config.APIKey.Valid {
+		esConfig.APIKey = config.APIKey.String
+	}
+	if config.ServiceAccountToken.Valid {
+		esConfig.ServiceToken = config.ServiceAccountToken.String
+	}
 	if config.CACert.Valid {
-		cert, err := ioutil.ReadFile(config.CACert.String)
+		cert, err := os.ReadFile(config.CACert.String)
 		if err != nil {
 			return nil, err
 		}
