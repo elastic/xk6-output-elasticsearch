@@ -44,21 +44,25 @@ type Config struct {
 	CACert             null.String `json:"caCertFile" envconfig:"K6_ELASTICSEARCH_CA_CERT_FILE"`
 	InsecureSkipVerify null.Bool   `json:"insecureSkipVerify" envconfig:"K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY"`
 
-	User     null.String `json:"user" envconfig:"K6_ELASTICSEARCH_USER"`
-	Password null.String `json:"password" envconfig:"K6_ELASTICSEARCH_PASSWORD"`
+	User                null.String `json:"user" envconfig:"K6_ELASTICSEARCH_USER"`
+	Password            null.String `json:"password" envconfig:"K6_ELASTICSEARCH_PASSWORD"`
+	APIKey              null.String `json:"apiKey" envconfig:"K6_ELASTICSEARCH_API_KEY"`
+	ServiceAccountToken null.String `json:"serviceAccountToken" envconfig:"K6_ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN"`
 
 	FlushPeriod types.NullDuration `json:"flushPeriod" envconfig:"K6_ELASTICSEARCH_FLUSH_PERIOD"`
 }
 
 func NewConfig() Config {
 	return Config{
-		Url:                null.StringFrom("http://localhost:9200"),
-		CloudID:            null.NewString("", false),
-		CACert:             null.NewString("", false),
-		InsecureSkipVerify: null.BoolFrom(false),
-		User:               null.NewString("", false),
-		Password:           null.NewString("", false),
-		FlushPeriod:        types.NullDurationFrom(defaultFlushPeriod),
+		Url:                 null.StringFrom("http://localhost:9200"),
+		CloudID:             null.NewString("", false),
+		APIKey:              null.NewString("", false),
+		CACert:              null.NewString("", false),
+		InsecureSkipVerify:  null.BoolFrom(false),
+		User:                null.NewString("", false),
+		Password:            null.NewString("", false),
+		ServiceAccountToken: null.NewString("", false),
+		FlushPeriod:         types.NullDurationFrom(defaultFlushPeriod),
 	}
 }
 
@@ -70,6 +74,9 @@ func (base Config) Apply(applied Config) Config {
 	}
 	if applied.CloudID.Valid {
 		base.CloudID = applied.CloudID
+	}
+	if applied.APIKey.Valid {
+		base.APIKey = applied.APIKey
 	}
 
 	if applied.CACert.Valid {
@@ -85,6 +92,10 @@ func (base Config) Apply(applied Config) Config {
 
 	if applied.Password.Valid {
 		base.Password = applied.Password
+	}
+
+	if applied.ServiceAccountToken.Valid {
+		base.ServiceAccountToken = applied.ServiceAccountToken
 	}
 
 	if applied.FlushPeriod.Valid {
@@ -124,6 +135,12 @@ func ParseArg(arg string) (Config, error) {
 
 	if v, ok := params["password"].(string); ok {
 		c.Password = null.StringFrom(v)
+	}
+	if v, ok := params["apiKey"].(string); ok {
+		c.APIKey = null.StringFrom(v)
+	}
+	if v, ok := params["serviceAccountToken"].(string); ok {
+		c.ServiceAccountToken = null.StringFrom(v)
 	}
 
 	if v, ok := params["flushPeriod"].(string); ok {
@@ -165,15 +182,15 @@ func GetConsolidatedConfig(jsonRawConf json.RawMessage, env map[string]string, a
 		}
 	}
 
-	if url, urlDefined := env["K6_ELASTICSEARCH_URL"]; urlDefined {
+	if url, defined := env["K6_ELASTICSEARCH_URL"]; defined {
 		result.Url = null.StringFrom(url)
 	}
 
-	if cloudId, cloudIdDefined := env["K6_ELASTICSEARCH_CLOUD_ID"]; cloudIdDefined {
+	if cloudId, defined := env["K6_ELASTICSEARCH_CLOUD_ID"]; defined {
 		result.CloudID = null.StringFrom(cloudId)
 	}
 
-	if ca, caDefined := env["K6_ELASTICSEARCH_CA_CERT_FILE"]; caDefined {
+	if ca, defined := env["K6_ELASTICSEARCH_CA_CERT_FILE"]; defined {
 		result.CACert = null.StringFrom(ca)
 	}
 
@@ -185,12 +202,18 @@ func GetConsolidatedConfig(jsonRawConf json.RawMessage, env map[string]string, a
 		}
 	}
 
-	if user, userDefined := env["K6_ELASTICSEARCH_USER"]; userDefined {
+	if user, defined := env["K6_ELASTICSEARCH_USER"]; defined {
 		result.User = null.StringFrom(user)
 	}
 
-	if password, passwordDefined := env["K6_ELASTICSEARCH_PASSWORD"]; passwordDefined {
+	if password, defined := env["K6_ELASTICSEARCH_PASSWORD"]; defined {
 		result.Password = null.StringFrom(password)
+	}
+	if apiKey, defined := env["K6_ELASTICSEARCH_API_KEY"]; defined {
+		result.APIKey = null.StringFrom(apiKey)
+	}
+	if serviceAccountToken, defined := env["K6_ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN"]; defined {
+		result.ServiceAccountToken = null.StringFrom(serviceAccountToken)
 	}
 
 	if arg != "" {
