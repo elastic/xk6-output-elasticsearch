@@ -47,8 +47,7 @@ type elasticMetricEntry struct {
 	MetricName string
 	MetricType string
 	Value      float64
-	MetricTags map[string]string
-	SampleTags map[string]string
+	Tags       map[string]string
 	Time       time.Time
 }
 
@@ -183,33 +182,29 @@ func (o *Output) flush() {
 		samples := samplesContainer.GetSamples()
 
 		for _, sample := range samples {
-			for _, entry := range sample.GetSamples() {
-				mappedEntry := elasticMetricEntry{
-					MetricName: entry.Metric.Name,
-					MetricType: entry.Metric.Type.String(),
-					Value:      entry.Value,
-					MetricTags: entry.GetTags().Map(),
-					SampleTags: sample.GetTags().Map(),
-					Time:       sample.Time,
-				}
-				data, err := json.Marshal(mappedEntry)
-				if err != nil {
-					o.logger.Fatalf("Cannot encode document: %s, %s", err, mappedEntry)
-				}
-				var item = esutil.BulkIndexerItem{
-					Action:    "index",
-					Body:      bytes.NewReader(data),
-					OnFailure: o.blkItemErrHandler,
-				}
-				err = o.bulkIndexer.Add(
-					context.Background(),
-					item,
-				)
-				if err != nil {
-					log.Fatalf("Unexpected error: %s", err)
-				}
+			mappedEntry := elasticMetricEntry{
+				MetricName: sample.Metric.Name,
+				MetricType: sample.Metric.Type.String(),
+				Value:      sample.Value,
+				Tags:       sample.GetTags().Map(),
+				Time:       sample.Time,
 			}
-
+			data, err := json.Marshal(mappedEntry)
+			if err != nil {
+				o.logger.Fatalf("Cannot encode document: %s, %s", err, mappedEntry)
+			}
+			var item = esutil.BulkIndexerItem{
+				Action:    "index",
+				Body:      bytes.NewReader(data),
+				OnFailure: o.blkItemErrHandler,
+			}
+			err = o.bulkIndexer.Add(
+				context.Background(),
+				item,
+			)
+			if err != nil {
+				log.Fatalf("Unexpected error: %s", err)
+			}
 		}
 	}
 }
