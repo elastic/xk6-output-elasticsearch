@@ -31,6 +31,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -61,6 +62,19 @@ type Output struct {
 
 	logger logrus.FieldLogger
 }
+
+const hasPrivilegesBody = `{
+  "index": [
+    {
+      "names": [
+        "k6-metrics"
+      ],
+      "privileges": [
+        "write", "create_index"
+      ]
+    }
+  ]
+}`
 
 var _ output.Output = new(Output)
 
@@ -119,12 +133,30 @@ func New(params output.Params) (output.Output, error) {
 		return nil, err
 	}
 	if info.StatusCode != 200 {
-		return nil, fmt.Errorf("cannot connect to Elasticsearch (status code %d)", info.StatusCode)
+		// The info API requires the 'monitor' privilege and the user might not have that. We can only get a 403 if
+		// security is configured on this cluster. Therefore, we call the has privilege API that is guaranteed to work
+		//for every user.
+		if info.StatusCode == 403 {
+			priv, err := client.Security.HasPrivileges(strings.NewReader(hasPrivilegesBody))
+			if err != nil {
+				return nil, err
+			}
+			if priv.StatusCode != 200 {
+				return nil, fmt.Errorf("cannot connect to Elasticsearch (status code %d)", priv.StatusCode)
+			}
+
+		} else {
+			return nil, fmt.Errorf("cannot connect to Elasticsearch (status code %d)", info.StatusCode)
+		}
 	}
 
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Index:  "k6-metrics",
 		Client: client,
+		OnError: func(ctx context.Context, err error) {
+			// this happens usually due to permission issues
+			params.Logger.Errorf("Could not write metrics: %s", err)
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating the indexer: %v", err)
@@ -146,6 +178,14 @@ func (o *Output) Start() error {
 	res, err := o.client.Indices.Create("k6-metrics", o.client.Indices.Create.WithBody(bytes.NewReader(mapping)))
 	if err != nil {
 		return err
+	}
+	// 400 usually happens when the index already exists, which is ok for our purposes.
+	if res.StatusCode > 400 {
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("could not read response after failure to create index: %v", err)
+		}
+		return fmt.Errorf("could not create index k6-metrics: %s", body)
 	}
 	res.Body.Close()
 
@@ -170,9 +210,9 @@ func (o *Output) Stop() error {
 
 func (o *Output) blkItemErrHandler(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
 	if err != nil {
-		o.logger.Printf("ERROR: %s", err)
+		o.logger.Errorf("%s", err)
 	} else {
-		o.logger.Printf("ERROR: %s: %s", res.Error.Type, res.Error.Reason)
+		o.logger.Errorf("%s: %s", res.Error.Type, res.Error.Reason)
 	}
 }
 
