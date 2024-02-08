@@ -67,7 +67,7 @@ const hasPrivilegesBody = `{
   "index": [
     {
       "names": [
-        "k6-metrics"
+        "%s"
       ],
       "privileges": [
         "write", "create_index"
@@ -137,21 +137,20 @@ func New(params output.Params) (output.Output, error) {
 		// security is configured on this cluster. Therefore, we call the has privilege API that is guaranteed to work
 		//for every user.
 		if info.StatusCode == 403 {
-			priv, err := client.Security.HasPrivileges(strings.NewReader(hasPrivilegesBody))
+			priv, err := client.Security.HasPrivileges(strings.NewReader(fmt.Sprintf(hasPrivilegesBody, config.IndexName.String)))
 			if err != nil {
 				return nil, err
 			}
 			if priv.StatusCode != 200 {
 				return nil, fmt.Errorf("cannot connect to Elasticsearch (status code %d)", priv.StatusCode)
 			}
-
 		} else {
 			return nil, fmt.Errorf("cannot connect to Elasticsearch (status code %d)", info.StatusCode)
 		}
 	}
 
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
-		Index:  "k6-metrics",
+		Index:  config.IndexName.String,
 		Client: client,
 		OnError: func(ctx context.Context, err error) {
 			// this happens usually due to permission issues
@@ -175,7 +174,8 @@ func (*Output) Description() string {
 }
 
 func (o *Output) Start() error {
-	res, err := o.client.Indices.Create("k6-metrics", o.client.Indices.Create.WithBody(bytes.NewReader(mapping)))
+	indexName := o.config.IndexName.String
+	res, err := o.client.Indices.Create(indexName, o.client.Indices.Create.WithBody(bytes.NewReader(mapping)))
 	if err != nil {
 		return err
 	}
@@ -183,9 +183,9 @@ func (o *Output) Start() error {
 	if res.StatusCode > 400 {
 		body, err := io.ReadAll(res.Body)
 		if err != nil {
-			return fmt.Errorf("could not read response after failure to create index: %v", err)
+			return fmt.Errorf("could not read response after failure to create index %s: %v", indexName, err)
 		}
-		return fmt.Errorf("could not create index k6-metrics: %s", body)
+		return fmt.Errorf("could not create index %s: %s", indexName, body)
 	}
 	res.Body.Close()
 
@@ -194,7 +194,7 @@ func (o *Output) Start() error {
 	} else {
 		o.periodicFlusher = periodicFlusher
 	}
-	o.logger.Debug("Elasticsearch: starting writing to index k6-metrics")
+	o.logger.Debugf("Elasticsearch: starting writing to index %s", indexName)
 
 	return nil
 }

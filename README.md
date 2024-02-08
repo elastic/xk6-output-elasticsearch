@@ -77,7 +77,7 @@ export K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY=true
 ./k6 run ./examples/script.js -o output-elasticsearch
 ```
 
-The metrics are stored in the index `k6-metrics` which will be automatically created by this extension. See the [mapping](pkg/esoutput/mapping.json) for details.
+The metrics are stored in the index `k6-metrics` by default which will be automatically created by this extension. See the [mapping](pkg/esoutput/mapping.json) for details. The index name can be customized with the environment variable `K6_ELASTICSEARCH_INDEX_NAME`.
 
 ## Docker Compose
 
@@ -105,7 +105,7 @@ Clone the repo to get started and follow these steps:
 
 5. Visit http://localhost:5601/ to view results in Kibana (default credentials are `elastic` / `changeme`).
 
-    - Create a [Data View](https://www.elastic.co/guide/en/kibana/current/data-views.html) for the index `k6-metrics`.
+    - Create a [Data View](https://www.elastic.co/guide/en/kibana/current/data-views.html) for the index `k6-metrics` or the index name in `K6_ELASTICSEARCH_INDEX_NAME` if it is set.
         ![Kibana Data View](./images/kibana-data-view.png)
     - Go to [Discover](https://www.elastic.co/guide/en/kibana/current/discover.html) to start exploring the metrics.
         ![Kibana Discover](./images/kibana-discover.png)
