@@ -36,6 +36,7 @@ import (
 
 const (
 	defaultFlushPeriod = time.Second
+	defaultIndexName   = "k6-metrics"
 )
 
 type Config struct {
@@ -50,6 +51,7 @@ type Config struct {
 	ServiceAccountToken null.String `json:"serviceAccountToken" envconfig:"K6_ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN"`
 
 	FlushPeriod types.NullDuration `json:"flushPeriod" envconfig:"K6_ELASTICSEARCH_FLUSH_PERIOD"`
+	IndexName   null.String        `json:"indexName" envconfig:"K6_ELASTICSEARCH_INDEX_NAME"`
 }
 
 func NewConfig() Config {
@@ -63,6 +65,7 @@ func NewConfig() Config {
 		Password:            null.NewString("", false),
 		ServiceAccountToken: null.NewString("", false),
 		FlushPeriod:         types.NullDurationFrom(defaultFlushPeriod),
+		IndexName:           null.StringFrom(defaultIndexName),
 	}
 }
 
@@ -100,6 +103,9 @@ func (base Config) Apply(applied Config) Config {
 
 	if applied.FlushPeriod.Valid {
 		base.FlushPeriod = applied.FlushPeriod
+	}
+	if applied.IndexName.Valid {
+		base.IndexName = applied.IndexName
 	}
 
 	return base
@@ -147,6 +153,9 @@ func ParseArg(arg string) (Config, error) {
 		if err := c.FlushPeriod.UnmarshalText([]byte(v)); err != nil {
 			return c, err
 		}
+	}
+	if v, ok := params["indexName"].(string); ok {
+		c.IndexName = null.StringFrom(v)
 	}
 
 	return c, nil
@@ -214,6 +223,9 @@ func GetConsolidatedConfig(jsonRawConf json.RawMessage, env map[string]string, a
 	}
 	if serviceAccountToken, defined := env["K6_ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN"]; defined {
 		result.ServiceAccountToken = null.StringFrom(serviceAccountToken)
+	}
+	if indexName, defined := env["K6_ELASTICSEARCH_INDEX_NAME"]; defined {
+		result.IndexName = null.StringFrom(indexName)
 	}
 
 	if arg != "" {
