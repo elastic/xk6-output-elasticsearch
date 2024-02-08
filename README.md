@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-[Go](https://golang.org/) 1.17 or better (verify with `go version`).
+[Go](https://golang.org/) 1.20 or better (verify with `go version`).
 
 ## Install
 
