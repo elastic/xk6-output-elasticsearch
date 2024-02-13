@@ -1,30 +1,30 @@
 # Declare your Buildkite pipelines below
 ---
 # yaml-language-server: $schema=https://gist.githubusercontent.com/elasticmachine/988b80dae436cafea07d9a4a460a011d/raw/rre.schema.json
-apiVersion: backstage.io/v1alpha1
-kind: Resource
-metadata:
-  name: buildkite-pipeline-xk6-output-elasticsearch
-  description: Buildkite Pipeline for xk6-output-elasticsearch
-  links:
-    - title: Pipeline
-      url: https://buildkite.com/elastic/xk6-output-elasticsearch
-
-spec:
-  type: buildkite-pipeline
-  owner: group:obs-knowledge-team
-  system: buildkite
-  implementation:
-    apiVersion: buildkite.elastic.dev/v1
-    kind: Pipeline
-    metadata:
-      name: xk6-output-elasticsearch
-      description: 
-    spec:
-      repository: elastic/xk6-output-elasticsearch
-      pipeline_file: ".buildkite/pipeline.yml"
-      teams:
-        obs-knowledge-team:
-          access_level: MANAGE_BUILD_AND_READ
-        everyone:
-          access_level: READ_ONLY
+#apiVersion: backstage.io/v1alpha1
+#kind: Resource
+#metadata:
+#  name: buildkite-pipeline-xk6-output-elasticsearch
+#  description: Buildkite Pipeline for xk6-output-elasticsearch
+#  links:
+#    - title: Pipeline
+#      url: https://buildkite.com/elastic/xk6-output-elasticsearch
+#
+#spec:
+#  type: buildkite-pipeline
+#  owner: group:obs-knowledge-team
+#  system: buildkite
+#  implementation:
+#    apiVersion: buildkite.elastic.dev/v1
+#    kind: Pipeline
+#    metadata:
+#      name: xk6-output-elasticsearch
+#      description:
+#    spec:
+#      repository: elastic/xk6-output-elasticsearch
+#      pipeline_file: ".buildkite/pipeline.yml"
+#      teams:
+#        obs-knowledge-team:
+#          access_level: MANAGE_BUILD_AND_READ
+#        everyone:
+#          access_level: READ_ONLY
