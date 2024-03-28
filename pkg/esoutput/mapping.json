@@ -19,6 +19,9 @@
             "enabled": true
         },
         "properties": {
+            "@timestamp": {
+                "type": "date"
+            },
             "Time": {
                 "type": "date"
             },

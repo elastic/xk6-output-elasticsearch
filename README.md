@@ -79,6 +79,16 @@ export K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY=true
 
 The metrics are stored in the index `k6-metrics` by default which will be automatically created by this extension. See the [mapping](pkg/esoutput/mapping.json) for details. The index name can be customized with the environment variable `K6_ELASTICSEARCH_INDEX_NAME`.
 
+### Writing to a datastream
+
+In addition to the normal setup, using Elasticsearch data streams require an op_type of `create`, which can be configured with `K6_ELASTICSEARCH_OP_TYPE`.
+
+```shell
+export K6_ELASTICSEARCH_OP_TYPE=create
+```
+
+There also has to exist a data stream enabled index template on the elasticsearch being written to. [Elasticsearch docs: Set up a data stream](https://www.elastic.co/guide/en/elasticsearch/reference/current/set-up-a-data-stream.html)
+
 ## Docker Compose
 
 This repo includes a [docker-compose.yml](./docker-compose.yml) file based on the [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-file), that starts Elasticsearch and Kibana. It also adds a custom build of k6 having the `xk6-output-elasticsearch` extension. This is just a quick way to showcase the usage, not meant for production usage.

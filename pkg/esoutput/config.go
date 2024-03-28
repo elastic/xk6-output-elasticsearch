@@ -37,6 +37,7 @@ import (
 const (
 	defaultFlushPeriod = time.Second
 	defaultIndexName   = "k6-metrics"
+	defaultOpType      = "index"
 )
 
 type Config struct {
@@ -52,6 +53,7 @@ type Config struct {
 
 	FlushPeriod types.NullDuration `json:"flushPeriod" envconfig:"K6_ELASTICSEARCH_FLUSH_PERIOD"`
 	IndexName   null.String        `json:"indexName" envconfig:"K6_ELASTICSEARCH_INDEX_NAME"`
+	OpType      null.String        `json:"opType" envconfig:"K6_ELASTICSEARCH_OP_TYPE"`
 }
 
 func NewConfig() Config {
@@ -66,6 +68,7 @@ func NewConfig() Config {
 		ServiceAccountToken: null.NewString("", false),
 		FlushPeriod:         types.NullDurationFrom(defaultFlushPeriod),
 		IndexName:           null.StringFrom(defaultIndexName),
+		OpType:              null.StringFrom(defaultOpType),
 	}
 }
 
@@ -106,6 +109,9 @@ func (base Config) Apply(applied Config) Config {
 	}
 	if applied.IndexName.Valid {
 		base.IndexName = applied.IndexName
+	}
+	if applied.OpType.Valid {
+		base.OpType = applied.OpType
 	}
 
 	return base
@@ -156,6 +162,9 @@ func ParseArg(arg string) (Config, error) {
 	}
 	if v, ok := params["indexName"].(string); ok {
 		c.IndexName = null.StringFrom(v)
+	}
+	if v, ok := params["opType"].(string); ok {
+		c.OpType = null.StringFrom(v)
 	}
 
 	return c, nil
@@ -226,6 +235,9 @@ func GetConsolidatedConfig(jsonRawConf json.RawMessage, env map[string]string, a
 	}
 	if indexName, defined := env["K6_ELASTICSEARCH_INDEX_NAME"]; defined {
 		result.IndexName = null.StringFrom(indexName)
+	}
+	if opType, defined := env["K6_ELASTICSEARCH_OP_TYPE"]; defined {
+		result.OpType = null.StringFrom(opType)
 	}
 
 	if arg != "" {
