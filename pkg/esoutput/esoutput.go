@@ -50,6 +50,7 @@ type elasticMetricEntry struct {
 	Value      float64
 	Tags       map[string]string
 	Time       time.Time
+	Timestamp  time.Time `json:"@timestamp"`
 }
 
 type Output struct {
@@ -228,13 +229,14 @@ func (o *Output) flush() {
 				Value:      sample.Value,
 				Tags:       sample.GetTags().Map(),
 				Time:       sample.Time,
+				Timestamp:  sample.Time,
 			}
 			data, err := json.Marshal(mappedEntry)
 			if err != nil {
 				o.logger.Fatalf("Cannot encode document: %s, %s", err, mappedEntry)
 			}
 			var item = esutil.BulkIndexerItem{
-				Action:    "index",
+				Action:    o.config.OpType.String,
 				Body:      bytes.NewReader(data),
 				OnFailure: o.blkItemErrHandler,
 			}
