@@ -234,7 +234,7 @@ func (o *Output) flush() {
 				o.logger.Fatalf("Cannot encode document: %s, %s", err, mappedEntry)
 			}
 			var item = esutil.BulkIndexerItem{
-				Action:    "index",
+				Action:    "create",
 				Body:      bytes.NewReader(data),
 				OnFailure: o.blkItemErrHandler,
 			}
