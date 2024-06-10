@@ -89,7 +89,7 @@ func New(params output.Params) (output.Output, error) {
 		return nil, err
 	}
 
-	var addresses = []string{config.Url.ValueOrZero()}
+	addresses := []string{config.Url.ValueOrZero()}
 
 	var esConfig es.Config
 
@@ -135,7 +135,7 @@ func New(params output.Params) (output.Output, error) {
 	if info.StatusCode != 200 {
 		// The info API requires the 'monitor' privilege and the user might not have that. We can only get a 403 if
 		// security is configured on this cluster. Therefore, we call the has privilege API that is guaranteed to work
-		//for every user.
+		// for every user.
 		if info.StatusCode == 403 {
 			priv, err := client.Security.HasPrivileges(strings.NewReader(fmt.Sprintf(hasPrivilegesBody, config.IndexName.String)))
 			if err != nil {
@@ -233,7 +233,7 @@ func (o *Output) flush() {
 			if err != nil {
 				o.logger.Fatalf("Cannot encode document: %s, %s", err, mappedEntry)
 			}
-			var item = esutil.BulkIndexerItem{
+			item := esutil.BulkIndexerItem{
 				Action:    "create",
 				Body:      bytes.NewReader(data),
 				OnFailure: o.blkItemErrHandler,
