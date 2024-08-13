@@ -1,11 +1,11 @@
-FROM golang:1.20-alpine as builder
+FROM golang:1.20-alpine@sha256:e47f121850f4e276b2b210c56df3fda9191278dd84a3a442bfe0b09934462a8f as builder
 WORKDIR $GOPATH/src/go.k6.io/k6
 ADD . .
 RUN apk --no-cache add git
 RUN CGO_ENABLED=0 go install go.k6.io/xk6/cmd/xk6@latest
 RUN CGO_ENABLED=0 xk6 build --with github.com/elastic/xk6-output-elasticsearch=. --output /tmp/k6
 
-FROM alpine:3.17
+FROM alpine:3.17@sha256:ef813b2faa3dd1a37f9ef6ca98347b72cd0f55e4ab29fb90946f1b853bf032d9
 RUN apk add --no-cache ca-certificates && \
     adduser -D -u 12345 -g 12345 k6
 COPY --from=builder /tmp/k6 /usr/bin/k6
