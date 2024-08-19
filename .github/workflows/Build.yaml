@@ -20,7 +20,7 @@ jobs:
         go-version: '^1.20' # The Go version to download (if necessary) and use.
     - name: build go module
       run: make && zip --junk-paths k6.zip k6
-    - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
+    - uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4
       with:
         name: k6.zip
         path: k6.zip
