@@ -6,7 +6,7 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.1.0
 	github.com/sirupsen/logrus v1.9.3
 	go.k6.io/k6 v0.53.0
-	gopkg.in/guregu/null.v5 v5.0.0
+	github.com/guregu/null/v5 v5.0.0
 )
 
 require (
