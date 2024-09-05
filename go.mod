@@ -1,12 +1,14 @@
 module github.com/elastic/xk6-output-elasticsearch
 
-go 1.20
+go 1.21.4
+
+toolchain go1.23.0
 
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.1.0
+	github.com/guregu/null/v5 v5.0.0
 	github.com/sirupsen/logrus v1.9.3
 	go.k6.io/k6 v0.53.0
-	gopkg.in/guregu/null.v3 v3.5.0
 )
 
 require (
@@ -43,5 +45,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
 	google.golang.org/grpc v1.64.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
+	gopkg.in/guregu/null.v3 v3.3.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

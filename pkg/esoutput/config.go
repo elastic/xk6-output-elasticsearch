@@ -26,12 +26,12 @@ package esoutput
 
 import (
 	"encoding/json"
+	"github.com/guregu/null/v5"
 	"strconv"
 	"time"
 
 	"github.com/kubernetes/helm/pkg/strvals"
 	"go.k6.io/k6/lib/types"
-	"gopkg.in/guregu/null.v3"
 )
 
 const (
