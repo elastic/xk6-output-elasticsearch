@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine@sha256:fae53d4f76ecdc665e3d0dc36a770bc96a6d81bce54fb120f4d33d895d3ab476 as builder
+FROM golang:1.23-alpine@sha256:ac67716dd016429be8d4c2c53a248d7bcdf06d34127d3dc451bda6aa5a87bc06 as builder
 WORKDIR $GOPATH/src/go.k6.io/k6
 ADD . .
 RUN apk --no-cache add git
