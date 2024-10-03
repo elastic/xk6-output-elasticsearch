@@ -119,8 +119,19 @@ func New(params output.Params) (output.Output, error) {
 		esConfig.CACert = cert
 	}
 
+	var clientTLSCert tls.Certificate
+	if config.ClientCert.Valid && config.ClientKey.Valid {
+		clientTLSCert, err = tls.LoadX509KeyPair(config.ClientCert.String, config.ClientKey.String)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	esConfig.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.InsecureSkipVerify.Bool},
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: config.InsecureSkipVerify.Bool,
+			Certificates:       []tls.Certificate{clientTLSCert},
+		},
 	}
 
 	client, err := es.NewClient(esConfig)

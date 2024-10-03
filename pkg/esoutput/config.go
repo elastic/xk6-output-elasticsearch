@@ -26,9 +26,10 @@ package esoutput
 
 import (
 	"encoding/json"
-	"github.com/guregu/null/v5"
 	"strconv"
 	"time"
+
+	"github.com/guregu/null/v5"
 
 	"github.com/kubernetes/helm/pkg/strvals"
 	"go.k6.io/k6/lib/types"
@@ -44,6 +45,9 @@ type Config struct {
 	CloudID            null.String `json:"cloud-id"  envconfig:"K6_ELASTICSEARCH_CLOUD_ID"`
 	CACert             null.String `json:"caCertFile" envconfig:"K6_ELASTICSEARCH_CA_CERT_FILE"`
 	InsecureSkipVerify null.Bool   `json:"insecureSkipVerify" envconfig:"K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY"`
+
+	ClientCert null.String `json:"clientCertFile" envconfig:"K6_ELASTICSEARCH_CLIENT_CERT_FILE"`
+	ClientKey  null.String `json:"clientKeyFile" envconfig:"K6_ELASTICSEARCH_CLIENT_KEY_FILE"`
 
 	User                null.String `json:"user" envconfig:"K6_ELASTICSEARCH_USER"`
 	Password            null.String `json:"password" envconfig:"K6_ELASTICSEARCH_PASSWORD"`
@@ -87,6 +91,13 @@ func (base Config) Apply(applied Config) Config {
 	}
 	if applied.InsecureSkipVerify.Valid {
 		base.InsecureSkipVerify = applied.InsecureSkipVerify
+	}
+
+	if applied.ClientCert.Valid {
+		base.ClientCert = applied.ClientCert
+	}
+	if applied.ClientKey.Valid {
+		base.ClientKey = applied.ClientKey
 	}
 
 	if applied.User.Valid {
@@ -133,6 +144,13 @@ func ParseArg(arg string) (Config, error) {
 
 	if v, ok := params["insecureSkipVerify"].(bool); ok {
 		c.InsecureSkipVerify = null.BoolFrom(v)
+	}
+
+	if v, ok := params["clientCertFile"].(string); ok {
+		c.ClientCert = null.StringFrom(v)
+	}
+	if v, ok := params["clientKeyFile"].(string); ok {
+		c.ClientKey = null.StringFrom(v)
 	}
 
 	if v, ok := params["user"].(string); ok {
@@ -209,6 +227,13 @@ func GetConsolidatedConfig(jsonRawConf json.RawMessage, env map[string]string, a
 		if skipVerify.Valid {
 			result.InsecureSkipVerify = skipVerify
 		}
+	}
+
+	if clientCert, defined := env["K6_ELASTICSEARCH_CLIENT_CERT_FILE"]; defined {
+		result.ClientCert = null.StringFrom(clientCert)
+	}
+	if clientKey, defined := env["K6_ELASTICSEARCH_CLIENT_KEY_FILE"]; defined {
+		result.ClientKey = null.StringFrom(clientKey)
 	}
 
 	if user, defined := env["K6_ELASTICSEARCH_USER"]; defined {
