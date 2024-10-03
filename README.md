@@ -58,6 +58,14 @@ export K6_ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN=your-service-account-token-here
 ./k6 run ./examples/script.js -o output-elasticsearch
 ```
 
+or with [client certificate authentication](https://www.elastic.co/guide/en/elasticsearch/reference/current/pki-realm.html)
+```shell
+export K6_ELASTICSEARCH_CLIENT_CERT_FILE=cert.pem
+export K6_ELASTICSEARCH_CLIENT_KEY_FILE=key.pem
+
+./k6 run ./examples/script.js -o output-elasticsearch
+```
+
 ### Running a local cluster
 
 Alternatively, you can send metrics to a local (unsecured) cluster:
