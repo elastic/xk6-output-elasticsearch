@@ -65,6 +65,8 @@ func NewConfig() Config {
 		APIKey:              null.NewString("", false),
 		CACert:              null.NewString("", false),
 		InsecureSkipVerify:  null.BoolFrom(false),
+		ClientCert:          null.NewString("", false),
+		ClientKey:           null.NewString("", false),
 		User:                null.NewString("", false),
 		Password:            null.NewString("", false),
 		ServiceAccountToken: null.NewString("", false),
