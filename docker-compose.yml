@@ -78,6 +78,10 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
+      # Uncomment for client cert authentication
+      #- xpack.security.transport.ssl.client_authentication=required
+      #- xpack.security.http.ssl.client_authentication=required
+      #- xpack.security.authc.realms.pki.pki1.order=1
     mem_limit: ${MEM_LIMIT}
     ulimits:
       memlock:
