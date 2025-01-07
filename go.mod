@@ -8,14 +8,14 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.1.0
 	github.com/guregu/null/v5 v5.0.0
 	github.com/sirupsen/logrus v1.9.3
-	go.k6.io/k6 v0.55.0
+	go.k6.io/k6 v0.56.0
 )
 
 require (
 	github.com/kubernetes/helm v2.17.0+incompatible
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
-	golang.org/x/time v0.7.0 // indirect
+	golang.org/x/time v0.8.0 // indirect
 )
 
 require (
@@ -39,9 +39,9 @@ require (
 	go.opentelemetry.io/otel/sdk v1.29.0 // indirect
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
-	golang.org/x/net v0.30.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240822170219-fc7c04adadcd // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240822170219-fc7c04adadcd // indirect
 	google.golang.org/grpc v1.67.1 // indirect
