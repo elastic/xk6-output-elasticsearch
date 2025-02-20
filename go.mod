@@ -2,7 +2,7 @@ module github.com/elastic/xk6-output-elasticsearch
 
 go 1.21.4
 
-toolchain go1.23.6
+toolchain go1.24.0
 
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.1.0
