@@ -38,8 +38,8 @@ import (
 	"strings"
 	"time"
 
-	es "github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
+	es "github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/esutil"
 	"github.com/sirupsen/logrus"
 	"go.k6.io/k6/output"
 )
