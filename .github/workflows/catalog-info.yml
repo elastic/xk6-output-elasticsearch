@@ -18,7 +18,7 @@ jobs:
       contents: read
       packages: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: elastic/oblt-actions/elastic/validate-catalog@v1
+      - uses: elastic/oblt-actions/elastic/validate-catalog@05ae3fb89b76667425b5e0b38a3ce60a060fc907 # v1
 
