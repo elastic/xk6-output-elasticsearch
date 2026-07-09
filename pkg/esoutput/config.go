@@ -29,7 +29,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/guregu/null/v5"
+	"github.com/guregu/null/v6"
 
 	"github.com/kubernetes/helm/pkg/strvals"
 	"go.k6.io/k6/lib/types"
