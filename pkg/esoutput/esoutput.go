@@ -30,18 +30,19 @@ import (
 	"crypto/tls"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
-	es "github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
+	es "github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/esutil"
 	"github.com/sirupsen/logrus"
-	"go.k6.io/k6/output"
+	"go.k6.io/k6/v2/output"
 )
 
 type elasticMetricEntry struct {
@@ -61,6 +62,9 @@ type Output struct {
 	output.SampleBuffer
 
 	logger logrus.FieldLogger
+
+	errMu    sync.Mutex
+	flushErr error
 }
 
 const hasPrivilegesBody = `{
@@ -89,15 +93,13 @@ func New(params output.Params) (output.Output, error) {
 		return nil, err
 	}
 
-	var addresses = []string{config.Url.ValueOrZero()}
-
 	var esConfig es.Config
 
 	// Cloud id takes precedence over a URL (which is localhost by default)
 	if config.CloudID.Valid {
 		esConfig.CloudID = config.CloudID.String
 	} else if config.Url.Valid {
-		esConfig.Addresses = strings.Split(strings.Join(addresses, ""), ",")
+		esConfig.Addresses = strings.Split(config.Url.String, ",")
 	}
 	if config.User.Valid {
 		esConfig.Username = config.User.String
@@ -119,19 +121,19 @@ func New(params output.Params) (output.Output, error) {
 		esConfig.CACert = cert
 	}
 
-	var clientTLSCert tls.Certificate
+	tlsConfig := &tls.Config{ //nolint:gosec // Explicitly controlled by K6_ELASTICSEARCH_INSECURE_SKIP_VERIFY.
+		InsecureSkipVerify: config.InsecureSkipVerify.Bool,
+	}
 	if config.ClientCert.Valid && config.ClientKey.Valid {
-		clientTLSCert, err = tls.LoadX509KeyPair(config.ClientCert.String, config.ClientKey.String)
+		clientTLSCert, err := tls.LoadX509KeyPair(config.ClientCert.String, config.ClientKey.String)
 		if err != nil {
 			return nil, err
 		}
+		tlsConfig.Certificates = []tls.Certificate{clientTLSCert}
 	}
 
 	esConfig.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: config.InsecureSkipVerify.Bool,
-			Certificates:       []tls.Certificate{clientTLSCert},
-		},
+		TLSClientConfig: tlsConfig,
 	}
 
 	client, err := es.NewClient(esConfig)
@@ -143,15 +145,17 @@ func New(params output.Params) (output.Output, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer info.Body.Close()
 	if info.StatusCode != 200 {
 		// The info API requires the 'monitor' privilege and the user might not have that. We can only get a 403 if
 		// security is configured on this cluster. Therefore, we call the has privilege API that is guaranteed to work
-		//for every user.
+		// for every user.
 		if info.StatusCode == 403 {
 			priv, err := client.Security.HasPrivileges(strings.NewReader(fmt.Sprintf(hasPrivilegesBody, config.IndexName.String)))
 			if err != nil {
 				return nil, err
 			}
+			defer priv.Body.Close()
 			if priv.StatusCode != 200 {
 				return nil, fmt.Errorf("cannot connect to Elasticsearch (status code %d)", priv.StatusCode)
 			}
@@ -160,24 +164,25 @@ func New(params output.Params) (output.Output, error) {
 		}
 	}
 
+	result := &Output{
+		client: client,
+		config: config,
+		logger: params.Logger,
+	}
+
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Index:  config.IndexName.String,
 		Client: client,
 		OnError: func(ctx context.Context, err error) {
-			// this happens usually due to permission issues
-			params.Logger.Errorf("Could not write metrics: %s", err)
+			result.recordError(fmt.Errorf("could not write metrics: %w", err))
 		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating the indexer: %v", err)
 	}
 
-	return &Output{
-		client:      client,
-		bulkIndexer: bulkIndexer,
-		config:      config,
-		logger:      params.Logger,
-	}, nil
+	result.bulkIndexer = bulkIndexer
+	return result, nil
 }
 
 func (*Output) Description() string {
@@ -190,15 +195,18 @@ func (o *Output) Start() error {
 	if err != nil {
 		return err
 	}
-	// 400 usually happens when the index already exists, which is ok for our purposes.
-	if res.StatusCode > 400 {
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			return fmt.Errorf("could not read response after failure to create index %s: %v", indexName, err)
-		}
-		return fmt.Errorf("could not create index %s: %s", indexName, body)
+	body, readErr := io.ReadAll(res.Body)
+	closeErr := res.Body.Close()
+	if readErr != nil {
+		return fmt.Errorf("could not read response after creating index %s: %w", indexName, readErr)
 	}
-	res.Body.Close()
+	if closeErr != nil {
+		return fmt.Errorf("could not close response after creating index %s: %w", indexName, closeErr)
+	}
+
+	if res.IsError() && !isIndexAlreadyExists(res.StatusCode, body) {
+		return fmt.Errorf("could not create index %s (status code %d): %s", indexName, res.StatusCode, body)
+	}
 
 	if periodicFlusher, err := output.NewPeriodicFlusher(time.Duration(o.config.FlushPeriod.Duration), o.flush); err != nil {
 		return err
@@ -212,19 +220,26 @@ func (o *Output) Start() error {
 
 func (o *Output) Stop() error {
 	o.logger.Debug("Elasticsearch: stopping writing")
-	o.periodicFlusher.Stop()
-	if err := o.bulkIndexer.Close(context.Background()); err != nil {
-		log.Fatalf("Elasticsearch: Could not close bulk indexer: %s", err)
+	if o.periodicFlusher != nil {
+		o.periodicFlusher.Stop()
 	}
-	return nil
+
+	indexerErr := o.bulkIndexer.Close(context.Background())
+	clientErr := o.client.Close(context.Background())
+
+	o.errMu.Lock()
+	flushErr := o.flushErr
+	o.errMu.Unlock()
+
+	return errors.Join(indexerErr, clientErr, flushErr)
 }
 
 func (o *Output) blkItemErrHandler(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
 	if err != nil {
-		o.logger.Errorf("%s", err)
-	} else {
-		o.logger.Errorf("%s: %s", res.Error.Type, res.Error.Reason)
+		o.recordError(err)
+		return
 	}
+	o.recordError(fmt.Errorf("%s: %s", res.Error.Type, res.Error.Reason))
 }
 
 func (o *Output) flush() {
@@ -242,7 +257,8 @@ func (o *Output) flush() {
 			}
 			data, err := json.Marshal(mappedEntry)
 			if err != nil {
-				o.logger.Fatalf("Cannot encode document: %s, %s", err, mappedEntry)
+				o.recordError(fmt.Errorf("cannot encode document: %w", err))
+				continue
 			}
 			var item = esutil.BulkIndexerItem{
 				Action:    "create",
@@ -254,8 +270,38 @@ func (o *Output) flush() {
 				item,
 			)
 			if err != nil {
-				log.Fatalf("Unexpected error: %s", err)
+				o.recordError(fmt.Errorf("could not add metric to bulk indexer: %w", err))
 			}
 		}
 	}
+}
+
+func (o *Output) recordError(err error) {
+	if err == nil {
+		return
+	}
+
+	o.logger.Error(err)
+	o.errMu.Lock()
+	if o.flushErr == nil {
+		o.flushErr = err
+	}
+	o.errMu.Unlock()
+}
+
+func isIndexAlreadyExists(statusCode int, body []byte) bool {
+	if statusCode != http.StatusBadRequest {
+		return false
+	}
+
+	var response struct {
+		Error struct {
+			Type string `json:"type"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return false
+	}
+
+	return response.Error.Type == "resource_already_exists_exception"
 }

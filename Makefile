@@ -23,6 +23,8 @@ MAKEFLAGS += --silent
 GO_MISSING_HELP = "\033[0;31mIMPORTANT\033[0m: Couldn't find go. Please install it first.\033[0m\n"
 
 GO := $(shell command -v go 2> /dev/null)
+K6_VERSION ?= v2.1.0
+XK6_VERSION ?= v1.4.9
 
 all: clean format test build
 
@@ -49,8 +51,7 @@ endif
 
 ## build: Builds a custom 'k6' with the local extension. 
 build: check-prereq
-	go install go.k6.io/xk6/cmd/xk6@latest
-	xk6 build --with github.com/elastic/xk6-output-elasticsearch=.
+	go run go.k6.io/xk6/cmd/xk6@$(XK6_VERSION) build --k6-version $(K6_VERSION) --with github.com/elastic/xk6-output-elasticsearch=. --output ./k6 --build-flags=-trimpath --build-flags=-buildvcs=false --build-flags="-ldflags=-s -w"
 
 ## format: Applies Go formatting to code.
 format:

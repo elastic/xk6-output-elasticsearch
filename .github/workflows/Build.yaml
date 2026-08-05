@@ -20,7 +20,7 @@ jobs:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
     - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5
       with:
-        go-version: '^1.20' # The Go version to download (if necessary) and use.
+        go-version: '1.25.12' # Toolchain required by the pinned xk6 release.
     - name: build go module
       run: make && zip --junk-paths k6.zip k6
     - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
