@@ -26,7 +26,7 @@ package esoutput
 
 import (
 	"github.com/elastic/xk6-output-elasticsearch/pkg/esoutput"
-	"go.k6.io/k6/output"
+	"go.k6.io/k6/v2/output"
 )
 
 func init() {

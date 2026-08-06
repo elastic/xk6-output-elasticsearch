@@ -2,18 +2,21 @@
 
 [k6 extension](https://k6.io/docs/extensions/) for publishing test-run metrics to Elasticsearch.
 
-## Prerequisites
+## Compatibility
 
-[Go](https://golang.org/) 1.20 or better (verify with `go version`).
+- k6 v2.1.0 (`go.k6.io/k6/v2`)
+- Elasticsearch 9.4.2, using the matching v9 Go client
+- Go 1.25 or newer (verify with `go version`)
+
+The build is pinned to k6 v2.1.0 by default. You can override `K6_VERSION`
+when checking a newer compatible k6 v2 release.
 
 ## Install
 
-Install [xk6](https://k6.io/docs/extensions/guides/build-a-k6-binary-using-go/):
+The Makefile invokes the pinned [xk6](https://k6.io/docs/extensions/guides/build-a-k6-binary-using-go/)
+version, so only Go is required:
 
 ```shell
-# Install xk6
-go install go.k6.io/xk6/cmd/xk6@latest
-
 # Build the xk6 binary locally
 git clone git@github.com:elastic/xk6-output-elasticsearch.git
 # Build k6 locally with the Elasticsearch output extension
@@ -21,6 +24,12 @@ make
 ```
 
 You will have a `k6` binary in the current directory.
+
+To explicitly select a k6 v2 release, override the pinned version:
+
+```shell
+make K6_VERSION=v2.1.0
+```
 
 ### Using Docker
 
