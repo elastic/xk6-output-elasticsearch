@@ -5,7 +5,7 @@ RUN apk --no-cache add git
 RUN CGO_ENABLED=0 go install go.k6.io/xk6/cmd/xk6@latest
 RUN CGO_ENABLED=0 xk6 build --with github.com/elastic/xk6-output-elasticsearch=. --output /tmp/k6
 
-FROM alpine:3.21@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
+FROM alpine:3.21@sha256:bc21487101ae47172509130ee1092cc273a831968d64b617776d1f69c81e42ab
 RUN apk add --no-cache ca-certificates && \
     adduser -D -u 12345 -g 12345 k6
 COPY --from=builder /tmp/k6 /usr/bin/k6
