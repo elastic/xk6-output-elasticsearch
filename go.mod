@@ -1,13 +1,13 @@
 module github.com/elastic/xk6-output-elasticsearch
 
-go 1.21.4
+go 1.23
 
 toolchain go1.23.6
 
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.1.0
 	github.com/guregu/null/v5 v5.0.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.10.2
 	go.k6.io/k6 v0.56.0
 )
 
